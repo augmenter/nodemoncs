@@ -66,8 +66,14 @@ namespace nodemon
 
 
             Console.WriteLine("Press Enter to exit");
-
-            Console.ReadLine();
+            Console.WriteLine("Press R Enter to restart");
+            string input;
+            while((input = Console.ReadLine()).Length > 0){
+                if (input == "r")
+                    Start();
+                else
+                    break;
+            }
 
 
 
@@ -105,7 +111,7 @@ namespace nodemon
         {
 
             Kill();
-            Console.WriteLine("starting node.js");
+            Console.WriteLine("starting node.js " + DateTime.Now.ToString());
 
             var start = new ProcessStartInfo();
 
@@ -116,17 +122,17 @@ namespace nodemon
             start.CreateNoWindow = true;
 
             start.RedirectStandardOutput = true;
-
+            start.RedirectStandardError = true;
             start.RedirectStandardInput = true;
 
-            start.Arguments = Path.Combine(monitoring, startup);
+            start.Arguments = Path.Combine( monitoring, startup);
 
 
 
             var node = new Process();
 
             node.EnableRaisingEvents = true;
-
+            node.ErrorDataReceived += ErrorHandler;
             node.OutputDataReceived += OutputHandler;
 
             node.StartInfo = start;
@@ -150,7 +156,7 @@ namespace nodemon
             input.Close();
 
 
-
+            node.BeginErrorReadLine();
             node.BeginOutputReadLine();
 
         }
@@ -162,13 +168,17 @@ namespace nodemon
 
             if (!String.IsNullOrEmpty(outLine.Data))
             {
-
                 Console.WriteLine(outLine.Data);
-
             }
-
         }
-
+        static void ErrorHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            
+            if (!String.IsNullOrEmpty(outLine.Data))
+            {
+                Console.WriteLine(outLine.Data);
+            }
+        }
 
 
         static void Renamed(object sender, System.IO.RenamedEventArgs e)
